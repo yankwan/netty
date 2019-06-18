@@ -71,6 +71,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         this.parent = parent;
         id = newId();
         unsafe = newUnsafe();
+        // 创建DefaultChannelPipeline对象
         pipeline = newChannelPipeline();
     }
 
@@ -463,6 +464,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            // 设置Channel的eventLoop属性
             AbstractChannel.this.eventLoop = eventLoop;
 
             if (eventLoop.inEventLoop()) {
@@ -490,19 +492,27 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
+                // 确保channel是打开的
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                // 执行注册逻辑
+                // 注册逻辑要做的就是将channel注册到selector中
                 doRegister();
                 neverRegistered = false;
                 registered = true;
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
+
+                // 调用DefaultChannelPipeline#invokeHandlerAddedIfNeeded()
                 pipeline.invokeHandlerAddedIfNeeded();
 
+                // 回调通知 promise 执行成功
                 safeSetSuccess(promise);
+
+                // 触发通知已经注册的事件
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
@@ -556,6 +566,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             if (!wasActive && isActive()) {
+                // 异步提交任务
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
