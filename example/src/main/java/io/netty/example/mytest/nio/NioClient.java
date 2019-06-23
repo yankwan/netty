@@ -122,8 +122,6 @@ public class NioClient {
         // 遍历响应队列
         List<String> responseQueue = (ArrayList<String>) key.attachment();
         for (String content : responseQueue) {
-            // 打印数据
-            System.out.println("写入数据：" + content);
             // 返回
             CodecUtil.write(clientSocketChannel, content);
         }
@@ -144,10 +142,28 @@ public class NioClient {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        NioClient client = new NioClient();
-        for (int i = 0; i < 30; i++) {
-            client.send("nihao: " + i);
-            Thread.sleep(1000L);
+//        NioClient client = new NioClient();
+//        for (int i = 0; i < 10; i++) {
+//            client.send("nihao: " + i);
+//            Thread.sleep(1000L);
+//        }
+
+        for (int n = 0; n < 5; n++) {
+            final int index = n;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        NioClient client = new NioClient();
+                        for (int i = 0; i < 5; i++) {
+                            client.send("hello nio_" + index + "_" + i);
+                            Thread.sleep(1000L);
+                        }
+                    } catch (Exception e) {
+
+                    }
+                }
+            }).start();
         }
     }
 

@@ -1,6 +1,5 @@
 package io.netty.example.mytest.reactor;
 
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -10,24 +9,31 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-public class Reactor implements Runnable {
+public class MultiReactor implements Runnable {
 
-    final Selector selector;
     final ServerSocketChannel serverSocket;
+    Selector[] selectors = new Selector[Runtime.getRuntime().availableProcessors()];
+    int next = 0;
 
-    Reactor(int port) throws IOException {
-        selector = Selector.open();
+    MultiReactor(int port) throws IOException {
+        init();
         serverSocket = ServerSocketChannel.open();
         serverSocket.socket().bind(
                 new InetSocketAddress(port)
         );
         serverSocket.configureBlocking(false);
         // 首先注册感兴趣事件，连接事件
-        SelectionKey sk = serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+        SelectionKey sk = serverSocket.register(selectors[0], SelectionKey.OP_ACCEPT);
         System.out.println("Server 启动完成");
 
         // Acceptor类处理新的连接
-        sk.attach(new Acceptor());
+        sk.attach(new MultiReactor.Acceptor());
+    }
+
+    private void init() throws IOException {
+        for (int i = 0; i < selectors.length; i++) {
+            selectors[i] = Selector.open();
+        }
     }
 
 
@@ -35,16 +41,15 @@ public class Reactor implements Runnable {
     public void run() {
         try {
             while (!Thread.interrupted()) {
-                // 阻塞等待事件  没有准备就绪的事件将会阻塞
-                int n = selector.select();
-                Set selected = selector.selectedKeys();
-                Iterator it = selected.iterator();
-                while (it.hasNext())
-                    // 已准备就绪，对事件进行分发
-                    // 已准备就绪的事件不用再考虑IO是否已经好了
-                    // 因此不会产生IO阻塞
-                    dispatch((SelectionKey) it.next());
-                selected.clear();
+                for (int i = 0; i < selectors.length; i++) {
+                    selectors[i].select();
+                    Set selected = selectors[i].selectedKeys();
+                    Iterator it = selected.iterator();
+                    while (it.hasNext()) {
+                        dispatch((SelectionKey) it.next());
+                    }
+                    selected.clear();
+                }
             }
         } catch (IOException e) {
             // TO DO
@@ -66,23 +71,25 @@ public class Reactor implements Runnable {
     class Acceptor implements Runnable {
 
         @Override
-        public void run() {
+        public synchronized void run() {
             try {
                 SocketChannel c = serverSocket.accept();
-                if (c != null)
+                if (c != null) {
                     // 注册读写
-//                    new Handler(selector, c);
-                    new MutilThreadHandler(selector, c);
-            } catch (IOException e) {
+                    new MutilThreadHandler(selectors[next], c);
+                }
+
+                if (++next == selectors.length) next = 0;
+            } catch (Exception e) {
                 // TO DO
             }
         }
     }
 
-
     public static void main(String[] args) throws IOException {
-        Reactor reactor = new Reactor(8080);
+        MultiReactor reactor = new MultiReactor(8080);
         Thread t = new Thread(reactor);
         t.start();
     }
+
 }

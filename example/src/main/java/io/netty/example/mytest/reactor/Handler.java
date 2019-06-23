@@ -8,8 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Handler implements Runnable {
 
@@ -27,26 +25,16 @@ public class Handler implements Runnable {
         selector = sel;
         socket = c;
         c.configureBlocking(false);
-        sk = socket.register(sel, 0);
+        sk = socket.register(sel, SelectionKey.OP_READ);
         // 将Handler实例(自己)添加到attachment中
         sk.attach(this);
-        // 服务端注册读事件，读取客户端信息
-        sk.interestOps(SelectionKey.OP_READ);
-        // 唤醒阻塞在selector.select()上的线程
-        selector.wakeup();
-    }
 
-    private boolean inputIsComplete() {
-        return true;
-    }
-
-    private boolean outputIsComplete() {
-        return true;
     }
 
     private void process(ByteBuffer byteBuffer) {
         String content = CodecUtil.newString(byteBuffer);
         System.out.println("读取数据：" + content);
+        System.out.println("Handler 实例: " + this);
     }
 
 
