@@ -145,6 +145,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
         }
 
+        // 获取ServerSocketChannel的channelPipeline
         ChannelPipeline p = channel.pipeline();
 
         final EventLoopGroup currentChildGroup = childGroup;
@@ -167,6 +168,20 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
+                // currentChildHandler 就是EchoServer中添加的ChannelInitializer对象
+                // ###
+                // ServerBootstrap b = new ServerBootstrap();
+                // b.childHandler(new ChannelInitializer<SocketChannel>() {
+                //    @Override
+                //    public void initChannel(SocketChannel ch) throws Exception {
+                //        ChannelPipeline p = ch.pipeline();
+                //        if (sslCtx != null) {
+                //            p.addLast(sslCtx.newHandler(ch.alloc()));
+                //        }
+                //        //p.addLast(new LoggingHandler(LogLevel.INFO));
+                //        p.addLast(serverHandler);
+                //    }
+                // });
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {

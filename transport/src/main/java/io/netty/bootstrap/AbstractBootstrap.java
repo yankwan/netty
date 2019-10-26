@@ -311,6 +311,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         Channel channel = null;
         try {
             // 创建一个Channel对象
+            // 通过反射, server端创建ServerSockChannel对象, client端创建SocketChannel对象
             channel = channelFactory.newChannel();
             // 初始化操作，交给子类实现
             init(channel);

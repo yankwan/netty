@@ -64,7 +64,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     final AbstractChannelHandlerContext head;
     final AbstractChannelHandlerContext tail;
 
+    // channelPipeline所属的channel
     private final Channel channel;
+
     private final ChannelFuture succeededFuture;
     private final VoidChannelPromise voidPromise;
     private final boolean touch = ResourceLeakDetector.isEnabled();
@@ -224,6 +226,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    // channelPipeline将ctx添加到链表的最后
     private void addLast0(AbstractChannelHandlerContext newCtx) {
         AbstractChannelHandlerContext prev = tail.prev;
         newCtx.prev = prev;

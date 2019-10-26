@@ -51,6 +51,9 @@ public final class EchoServer {
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
+             // 通过反射调用NioServerSocketChannel的构造方法
+             // ReflectiveChannelFactory 赋值给this.channelFactory
+             // 调用this.channelFactory.newChannel生成channel
              .channel(NioServerSocketChannel.class)
              .option(ChannelOption.SO_BACKLOG, 100)
              .handler(new LoggingHandler(LogLevel.INFO))
@@ -67,6 +70,7 @@ public final class EchoServer {
              });
 
             // Start the server.
+            // bind() --> doBind() --> initAndRegister()
             ChannelFuture f = b.bind(PORT).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {

@@ -352,7 +352,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         boolean ranAtLeastOne = false;
 
         do {
+            // 将定时任务队列scheduledTaskQueue中的任务添加到taskQueue
             fetchedAll = fetchFromScheduledTaskQueue();
+            // 执行taskQueue中的所有任务
             if (runAllTasksFrom(taskQueue)) {
                 ranAtLeastOne = true;
             }
@@ -751,7 +753,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             throw new NullPointerException("task");
         }
 
+        // 是否在当前eventLoop的线程中
         boolean inEventLoop = inEventLoop();
+        // 添加到任务队列
         addTask(task);
         if (!inEventLoop) {
             startThread();
@@ -904,6 +908,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 boolean success = false;
                 updateLastExecutionTime();
                 try {
+                    // 调用EventLoop的事件循环
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

@@ -126,6 +126,22 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
     private boolean initChannel(ChannelHandlerContext ctx) throws Exception {
         if (initMap.add(ctx)) { // Guard against re-entrance.
             try {
+                /**
+                 * initChannel(ctx)方法由开发人员提供
+                 * <pre>
+                 *     b.childHandler(new ChannelInitializer<SocketChannel>() {
+                 *            @Override
+                 *            public void initChannel(SocketChannel ch) throws Exception {
+                 *                ChannelPipeline p = ch.pipeline();
+                 *                if (sslCtx != null) {
+                 *                p.addLast(sslCtx.newHandler(ch.alloc()));
+                 *            }
+                 *            // Add ServerHandler
+                 *            p.addLast(serverHandler);
+                 *         }
+                 *     });
+                 * </pre>
+                 */
                 initChannel((C) ctx.channel());
             } catch (Throwable cause) {
                 // Explicitly call exceptionCaught(...) as we removed the handler before calling initChannel(...).
@@ -134,6 +150,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
             } finally {
                 ChannelPipeline pipeline = ctx.pipeline();
                 if (pipeline.context(this) != null) {
+                    // 将ChannelInitialzer对象从pipeline中移除
                     pipeline.remove(this);
                 }
             }

@@ -258,6 +258,19 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
     @SuppressWarnings("unchecked")
     void init(Channel channel) throws Exception {
         ChannelPipeline p = channel.pipeline();
+        // config.handler()是之前设置的ChannelInitializer对象
+        //
+        // Bootstrap b = new Bootstrap();
+        // b.handler(new ChannelInitializer<SocketChannel>() {
+        //    @Override
+        //    public void initChannel(SocketChannel ch) throws Exception {
+        //       ChannelPipeline p = ch.pipeline();
+        //        if (sslCtx != null) {
+        //            p.addLast(sslCtx.newHandler(ch.alloc(), HOST, PORT));
+        //        }
+        //        p.addLast(new EchoClientHandler());
+        //    }
+        // });
         p.addLast(config.handler());
 
         final Map<ChannelOption<?>, Object> options = options0();
